@@ -151,7 +151,46 @@ If Silero is missing and EnergyVAD is the fallback, AGC is disabled: boosting a
   actual repetitions can exceed 100. Use transcript coverage and exact synthetic
   attenuation tests as stronger evidence.
 
-**Next mission after user validation:** free-form dhikr auto-detection — score
+## NEXT MISSION: real-time count feedback (live counting)
+
+Problem: count updates are structurally delayed. Transcription only starts when a
+segment CLOSES — 800ms hangover after the user pauses, or the 14s forced cap
+during continuous recitation. Mid-dhikr the counter looks dead for many seconds.
+
+Design (approved direction, implement test-first, validate in harness):
+1. **Mid-segment partial transcription**: while a segment is open, snapshot the
+   in-progress audio every ~750ms-1s of new voiced audio and transcribe the
+   snapshot on the serialized inference chain. Partials are DROPPABLE — if
+   inference is busy, skip the pass; never queue a backlog.
+2. **Volatile count semantics**: partial transcripts must NEVER enter the
+   SessionEngine positional event stream as committed events. For the open
+   segment, re-match the whole partial transcript from scratch each pass
+   (fresh scan); displayed count = committed count at segment start + matches
+   in latest partial. When the segment closes, the full transcription is
+   authoritative and commits through the existing path. Inspect DhikrMatcher /
+   SessionEngine scan-state interaction before choosing the overlay shape.
+3. **Monotonic UX invariant**: published count must practically never decrease.
+   Partial matching should be conservative — drop candidate repetitions ending
+   within ~300-500ms of the audio tail (incomplete-word risk), so final close
+   only ever adds. If final close ever counts lower than a partial, investigate
+   rather than silently stepping backwards.
+4. **Cost envelope**: worst case one ~15s transcription (~100ms M-series) per
+   second ≈ 10% of one core. Acceptable; do NOT rearchitect to incremental
+   streaming ASR — overkill. Nawah is not causal-friendly; re-transcribing the
+   open segment snapshot is the pragmatic design.
+5. **Edge cases**: forced cap splits can straddle a repetition (existing
+   behavior — do not regress); skip partials for segments shorter than ~1s;
+   AGC/Silero ordering unchanged.
+6. **Validation**: harness must measure COUNT LATENCY (time from repetition end
+   to first count update) in addition to final accuracy. Final counts must not
+   regress: 8/8 corpus + recording replays. This is the "mid-segment partial
+   passes" lever already documented below — now user-prioritized.
+
+THEN after live counting ships: free-form dhikr auto-detection (score segments
+against the full adhkar library, confidence-gated lock-in, longest-match wins,
+never hallucinate on noise).
+
+**(superseded ordering note)** free-form dhikr auto-detection — score
 each segment against the full adhkar library in parallel, confidence-gated
 lock-in, longest-match wins for prefix collisions, never hallucinate on noise.
 
