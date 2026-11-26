@@ -1,0 +1,32 @@
+{
+  "audio_seconds" : 17.965187499999999,
+  "file" : "\/Users\/fxwalken\/Documents\/GitHub\/dhikr counter\/eval\/corpus\/slow10.wav",
+  "model_load_ms" : 160.19093990325928,
+  "rtf" : 0.0035849936804896159,
+  "segments" : [
+    {
+      "decode_steps" : 84,
+      "enc_frames" : 90,
+      "end_sample" : 114944,
+      "index" : 0,
+      "seconds" : 7.1840000000000002,
+      "start_sample" : 0,
+      "text" : "سبحان الله سبحان الله سبحان الله سبحان الله",
+      "time_ms" : 30.525088310241699,
+      "tokens" : 12
+    },
+    {
+      "decode_steps" : 129,
+      "enc_frames" : 135,
+      "end_sample" : 287443,
+      "index" : 1,
+      "seconds" : 10.7811875,
+      "start_sample" : 114944,
+      "text" : "سبحان الله سبحان الله سبحان الله سبحان الله سبحان الله سبحان الله",
+      "time_ms" : 33.879995346069336,
+      "tokens" : 18
+    }
+  ],
+  "total_inference_ms" : 64.405083656311035,
+  "transcript" : "سبحان الله سبحان الله سبحان الله سبحان الله سبحان الله سبحان الله سبحان الله سبحان الله سبحان الله سبحان الله"
+}

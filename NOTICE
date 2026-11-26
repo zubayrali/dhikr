@@ -1,0 +1,16 @@
+Dhikr — voice-first tasbih counter
+==================================
+
+Third-party acknowledgments
+---------------------------
+
+Nawah Arabic ASR model (parakeet-TDT architecture, 62.7M parameters)
+  Author:  oddadmix (HuggingFace)
+  Source:  https://huggingface.co/oddadmix/Nawah-Parakeet-60M
+  Usage:   Bundled in CoreML-converted form for fully on-device Arabic
+           speech recognition. Used with the author's explicit permission,
+           granted November 2026 in support of this project.
+
+  The model weights remain the author's intellectual property. This
+  permission covers distribution within the Dhikr application; it is not
+  a general license to redistribute the weights separately.

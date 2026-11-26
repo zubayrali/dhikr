@@ -1,0 +1,13 @@
+{
+  "description": "Synthetic TTS corpus (Majed ar_001). Smoke-test for conversion correctness. Real recitation recordings are the accuracy corpus — user to record.",
+  "cases": [
+    { "file": "out/subhanallah-x10.wav", "dhikr": "subhanallah", "expected": 10, "note": "slow clear, comma pauses" },
+    { "file": "out/alhamdulillah-x10.wav", "dhikr": "alhamdulillah", "expected": 10 },
+    { "file": "out/allahuakbar-x10.wav", "dhikr": "allahuakbar", "expected": 10 },
+    { "file": "out/tasbih-mixed-x5.wav", "dhikr": "subhanallah", "expected": 5, "note": "mixed sequence, count only first phrase" },
+    { "file": "out/subhanallah-fast-x15.wav", "dhikr": "subhanallah", "expected": 15, "note": "fast chain, few pauses — the hard case" },
+    { "file": "out/negative-news.wav", "dhikr": "subhanallah", "expected": 0, "note": "unrelated Arabic must count zero" },
+    { "file": "out/istighfar-x10.wav", "dhikr": "istighfar", "expected": 10 },
+    { "file": "out/salawat-x10.wav", "dhikr": "salawat", "expected": 10, "note": "short salawat form, canonical variant matching" }
+  ]
+}

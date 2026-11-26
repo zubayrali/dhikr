@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.dhikr.spike</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Dhikr counting validation spike needs speech recognition.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Dhikr counting validation spike needs microphone access.</string>
+</dict>
+</plist>
