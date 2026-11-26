@@ -3,6 +3,13 @@ import Foundation
 /// Scores a 512-sample frame with a speech probability 0...1.
 public protocol VADScoring: Sendable {
     func score(frame: [Float]) -> Float
+    /// Reset streaming state at a session boundary. Stateless implementations
+    /// get this no-op default; neural streaming VADs must override it.
+    func reset()
+}
+
+public extension VADScoring {
+    func reset() {}
 }
 
 /// Energy-based voice activity with adaptive noise-floor tracking.

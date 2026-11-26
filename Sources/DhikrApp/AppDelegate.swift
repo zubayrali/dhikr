@@ -56,7 +56,19 @@ import DhikrCore
         Task.detached(priority: .userInitiated) { [controller] in
             do {
                 let transcriber = try NawahCoreMLTranscriber.bundled()
-                let recognizer = NawahRecognizer(transcriber: transcriber)
+                let vad: VADScoring
+                let agcEnabled: Bool
+                do {
+                    vad = try SileroVAD.bundled()
+                    agcEnabled = true
+                } catch {
+                    NSLog("Silero VAD unavailable: \(error) — falling back to energy VAD")
+                    vad = EnergyVAD()
+                    // AGC raises the measured noise floor into the energy VAD's
+                    // trigger range; the fallback keeps the proven raw pipeline.
+                    agcEnabled = false
+                }
+                let recognizer = NawahRecognizer(vad: vad, transcriber: transcriber, agcEnabled: agcEnabled)
                 await MainActor.run {
                     controller.attachRecognizer(recognizer)
                 }

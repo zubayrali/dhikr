@@ -8,8 +8,10 @@ final class NawahRecognizer: @unchecked Sendable, DhikrRecognizer {
 
     private let vad: VADScoring
     private let transcriber: SegmentTranscriber
+    private let agcEnabled: Bool
     private var capture: AudioCapture?
     private var chunker = FrameChunker()
+    private var agc = AutomaticGainControl()
     // 14s cap: speech + 300ms pre-roll + 800ms hangover must fit the preprocessor
     // window (240240 samples ≈ 15s) — worst case 238400 samples at 14s speech.
     private var segmenter = SpeechSegmenter(config: {
@@ -46,9 +48,10 @@ final class NawahRecognizer: @unchecked Sendable, DhikrRecognizer {
     /// (both fire from independent Tasks); chaining guarantees execution order
     private var lifecycleChain: Task<Void, Never>?
 
-    init(vad: VADScoring = EnergyVAD(), transcriber: SegmentTranscriber) {
+    init(vad: VADScoring = EnergyVAD(), transcriber: SegmentTranscriber, agcEnabled: Bool = true) {
         self.vad = vad
         self.transcriber = transcriber
+        self.agcEnabled = agcEnabled
         var cont: AsyncStream<RecognitionEvent>.Continuation!
         self.events = AsyncStream { cont = $0 }
         self.continuation = cont
@@ -83,9 +86,11 @@ final class NawahRecognizer: @unchecked Sendable, DhikrRecognizer {
         makeStream()
         inferenceChain = nil
         chunker = FrameChunker()
+        agc = AutomaticGainControl()
+        vad.reset()
         // tuned against real continuous fast recitation (eval replay):
-        // 800ms hangover bridges mumbled low-energy gaps; 0.3 threshold with the
-        // adaptive VAD keeps quiet speech voiced — measured +8 count accuracy
+        // 800ms hangover bridges mumbled low-energy gaps; 0.3 threshold admits
+        // low-confidence quiet speech while Silero's spectral detector rejects noise
         segmenter = SpeechSegmenter(config: {
             var c = SpeechSegmenter.Config()
             c.maxSegmentMs = 14000
@@ -169,8 +174,12 @@ final class NawahRecognizer: @unchecked Sendable, DhikrRecognizer {
 
         let frames = chunker.feed(samples)
         for frame in frames {
-            let prob = vad.score(frame: frame)
-            for output in segmenter.feed(frame: frame, speechProbability: prob) {
+            // Raw audio is what SessionRecorder writes (replay evidence); the
+            // model pipeline sees the same AGC-normalized frames in live capture
+            // and offline replay. The UI level meter intentionally stays raw.
+            let gainedFrame = agcEnabled ? agc.process(frame: frame) : frame
+            let prob = vad.score(frame: gainedFrame)
+            for output in segmenter.feed(frame: gainedFrame, speechProbability: prob) {
                 switch output {
                 case .speechStarted:
                     continuation.yield(.speechStarted)

@@ -57,11 +57,29 @@ func loadWav16k(_ path: String) throws -> [Float] {
         var chunker = FrameChunker()
         var cfg = SpeechSegmenter.Config()
         cfg.maxSegmentMs = 14000
+        cfg.hangoverMs = 800
+        cfg.threshold = 0.3
         var segmenter = SpeechSegmenter(config: cfg)
-        let vad = EnergyVAD()
+
+        // Default is the live pipeline: AGC → Silero VAD. Environment switches
+        // exist only for controlled before/after ablations:
+        //   PIPELINE_AGC=0     bypass gain normalization
+        //   PIPELINE_VAD=energy  use the old energy VAD
+        let environment = ProcessInfo.processInfo.environment
+        let useAGC = environment["PIPELINE_AGC"] != "0"
+        let useEnergyVAD = environment["PIPELINE_VAD"] == "energy"
+        let vad: VADScoring
+        if useEnergyVAD {
+            vad = EnergyVAD()
+        } else {
+            vad = try SileroVAD(modelsDir: URL(fileURLWithPath: "eval/silero-coreml/build/compiled"))
+        }
+        var agc = AutomaticGainControl()
+        print("pipeline: vad=\(useEnergyVAD ? "energy" : "silero") agc=\(useAGC ? "on" : "off")")
 
         var segments: [[Float]] = []
-        for frame in chunker.feed(samples) {
+        for rawFrame in chunker.feed(samples) {
+            let frame = useAGC ? agc.process(frame: rawFrame) : rawFrame
             for output in segmenter.feed(frame: frame, speechProbability: vad.score(frame: frame)) {
                 if case .segment(let s) = output { segments.append(s) }
             }

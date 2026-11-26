@@ -30,6 +30,12 @@ if [ -d "$MODELS_SRC" ]; then
     cp -R "$MODELS_SRC/$m.mlmodelc" "$APP/Contents/Resources/Models/"
   done
   cp "$MODELS_SRC/parakeet_vocab.json" "$APP/Contents/Resources/Models/"
+  SILERO_SRC="eval/silero-coreml/build/compiled/SileroVAD.mlmodelc"
+  if [ -d "$SILERO_SRC" ]; then
+    cp -R "$SILERO_SRC" "$APP/Contents/Resources/Models/"
+  else
+    echo "WARNING: no Silero VAD at $SILERO_SRC — falling back to energy VAD"
+  fi
   echo "Models bundled"
 else
   echo "WARNING: no converted models at $MODELS_SRC — voice recognition unavailable"

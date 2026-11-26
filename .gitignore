@@ -5,6 +5,7 @@ eval/nawah-coreml/ref/
 eval/nawah-coreml/models/
 eval/nawah-coreml/venv/
 eval/nawah-coreml/build/
+eval/silero-coreml/build/
 eval/harness/build/
 Dhikr.app/
 dist/
